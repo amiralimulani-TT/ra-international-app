@@ -11,6 +11,7 @@ const menuItems: { page: Page; label: string; icon: string }[] = [
   { page: 'dashboard', label: 'Dashboard', icon: '📊' },
   { page: 'customers', label: 'Customers', icon: '👥' },
   { page: 'vendors', label: 'Vendors', icon: '🏭' },
+  { page: 'items', label: 'Items', icon: '📦' },
   { page: 'orders', label: 'Orders', icon: '📋' },
   { page: 'purchases', label: 'Purchases', icon: '🛒' },
   { page: 'deliveries', label: 'Deliveries', icon: '🚚' },

@@ -26,9 +26,9 @@ export default function Settings({ state, updateState }: Props) {
         try {
           const data = JSON.parse(ev.target?.result as string);
           updateState(data);
-          alert('Data imported successfully!');
+          alert('✅ Data imported successfully!');
         } catch {
-          alert('Invalid file format');
+          alert('❌ Invalid file format');
         }
       };
       reader.readAsText(file);
@@ -40,9 +40,9 @@ export default function Settings({ state, updateState }: Props) {
     if (confirm('⚠️ Are you sure? This will delete ALL data permanently!')) {
       if (confirm('This action CANNOT be undone. Are you really sure?')) {
         updateState({
-          customers: [], vendors: [], orders: [], purchases: [],
+          masterItems: [], customers: [], vendors: [], orders: [], purchases: [],
           deliveries: [], transportReceipts: [], invoices: [],
-          payments: [], vendorPayments: [], expenses: [],
+          payments: [], vendorPayments: [], expenses: [], creditNotes: [],
         });
       }
     }
@@ -56,163 +56,123 @@ export default function Settings({ state, updateState }: Props) {
       <div className="bg-white rounded-xl p-6 shadow-sm border mb-6">
         <h2 className="text-lg font-bold text-gray-700 mb-4">💾 Data Management</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button onClick={handleExportData} className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition">
-            📥 Export Backup (JSON)
-          </button>
-          <button onClick={handleImportData} className="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition">
-            📤 Import Data
-          </button>
-          <button onClick={handleClearData} className="bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition">
-            🗑️ Clear All Data
-          </button>
+          <button onClick={handleExportData} className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700">📥 Export Backup</button>
+          <button onClick={handleImportData} className="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700">📤 Import Data</button>
+          <button onClick={handleClearData} className="bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700">🗑️ Clear All Data</button>
         </div>
-        <p className="text-sm text-gray-500 mt-3">Data is stored in your browser's localStorage. Export regularly for backup!</p>
+        <p className="text-sm text-gray-500 mt-3">Data stored in browser localStorage. Export regularly!</p>
       </div>
 
-      {/* Google Sheets Integration Guide */}
+      {/* Features Guide */}
       <div className="bg-white rounded-xl p-6 shadow-sm border mb-6">
-        <h2 className="text-lg font-bold text-gray-700 mb-4">📊 Google Sheets as Free Backend</h2>
-        <div className="prose prose-sm max-w-none">
-          <p className="text-gray-600 mb-4">Google Sheets ko FREE backend ki tarah use kar sakte hain. Steps:</p>
-          <ol className="list-decimal pl-5 space-y-3 text-gray-600">
-            <li>
-              <strong>Google Sheet Banayein:</strong> Ek new Google Sheet banayein with tabs: Customers, Vendors, Orders, Purchases, Deliveries, Invoices, Payments, Expenses
-            </li>
-            <li>
-              <strong>Google Apps Script:</strong> Sheet mein Tools → Script Editor kholien. Yeh code paste karein jo API endpoints banata hai:
-            </li>
-          </ol>
-          <div className="bg-gray-900 text-green-400 p-4 rounded-lg my-4 overflow-x-auto text-xs">
-            <pre>{`// Google Apps Script Code
-function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName(e.parameter.sheet);
-  var data = sheet.getDataRange().getValues();
-  return ContentService.createTextOutput(
-    JSON.stringify(data)
-  ).setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName(e.parameter.sheet);
-  var data = JSON.parse(e.postData.contents);
-  sheet.appendRow([new Date(), JSON.stringify(data)]);
-  return ContentService.createTextOutput(
-    JSON.stringify({status: "success"})
-  );
-}`}</pre>
+        <h2 className="text-lg font-bold text-gray-700 mb-4">🚀 App Features</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-emerald-50 rounded-lg p-4">
+            <h3 className="font-bold text-emerald-800 mb-2">📦 Master Items</h3>
+            <p className="text-sm text-gray-700">Create items once, use them everywhere - Orders, Purchases, Deliveries, Invoices. Auto-fills rate and unit.</p>
           </div>
-          <ol className="list-decimal pl-5 space-y-3 text-gray-600" start={3}>
-            <li>
-              <strong>Deploy:</strong> Deploy → New Deployment → Web App → Anyone can access
-            </li>
-            <li>
-              <strong>URL milega:</strong> Jo aap frontend mein API URL ki tarah use karenge
-            </li>
-            <li>
-              <strong>FREE hai!</strong> Google Apps Script free hai, Google Sheets free hai
-            </li>
+          <div className="bg-blue-50 rounded-lg p-4">
+            <h3 className="font-bold text-blue-800 mb-2">🔍 Auto-Complete</h3>
+            <p className="text-sm text-gray-700">Search customers and vendors with auto-complete. Type to filter, click to select.</p>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-4">
+            <h3 className="font-bold text-purple-800 mb-2">🚚→🧾 Delivery to Invoice</h3>
+            <p className="text-sm text-gray-700">Select items from delivery note and convert to invoice in one click. Full or partial invoicing.</p>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-4">
+            <h3 className="font-bold text-orange-800 mb-2">💰 Outstanding Payments</h3>
+            <p className="text-sm text-gray-700">See all pending invoices with aging. Select multiple and record bulk payments.</p>
+          </div>
+          <div className="bg-red-50 rounded-lg p-4">
+            <h3 className="font-bold text-red-800 mb-2">📅 Aging Report</h3>
+            <p className="text-sm text-gray-700">Track overdue payments by 30/60/90+ days. Know who needs follow-up.</p>
+          </div>
+          <div className="bg-indigo-50 rounded-lg p-4">
+            <h3 className="font-bold text-indigo-800 mb-2">📊 Customer P&L</h3>
+            <p className="text-sm text-gray-700">See revenue, received, and balance for each customer. Know your best customers.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Workflow */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border mb-6">
+        <h2 className="text-lg font-bold text-gray-700 mb-4">📋 Business Workflow</h2>
+        <div className="bg-emerald-50 rounded-lg p-4">
+          <ol className="list-decimal pl-5 text-sm text-gray-700 space-y-2">
+            <li><strong>📦 Items:</strong> Add master items first (optional but recommended)</li>
+            <li><strong>👥 Customers:</strong> Add customers with contact details</li>
+            <li><strong>🏭 Vendors:</strong> Add vendors</li>
+            <li><strong>📋 Order:</strong> Customer order aata hai → Create order</li>
+            <li><strong>🛒 Purchase:</strong> Vendor se maal mangwayein → Create PO</li>
+            <li><strong>🚚 Delivery:</strong> Maal deliver karein → Create Delivery Note (auto-fills from order)</li>
+            <li><strong>🧾 Invoice:</strong> Delivery Note se directly Invoice banayein (select items)</li>
+            <li><strong>💰 Payment:</strong> Customer se payment receive karein / Vendor ko pay karein</li>
+            <li><strong>💸 Expenses:</strong> Office/transport expenses add karein</li>
+            <li><strong>📈 Reports:</strong> P&L, Balance Sheet, Aging, Customer analysis - sab auto!</li>
           </ol>
         </div>
       </div>
 
-      {/* Free Deployment Options */}
+      {/* Deployment */}
       <div className="bg-white rounded-xl p-6 shadow-sm border mb-6">
-        <h2 className="text-lg font-bold text-gray-700 mb-4">🚀 FREE Deployment Options</h2>
+        <h2 className="text-lg font-bold text-gray-700 mb-4">🚀 FREE Deployment</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="border rounded-lg p-4">
-            <h3 className="font-bold text-emerald-700 mb-2">Vercel (Recommended)</h3>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>✅ vercel.com pe jaayein</li>
-              <li>✅ GitHub se connect karein</li>
-              <li>✅ Auto deploy ho jayega</li>
-              <li>✅ Free SSL & Domain</li>
-              <li>✅ Unlimited bandwidth</li>
-            </ul>
+            <h3 className="font-bold text-emerald-700 mb-2">Vercel</h3>
+            <p className="text-sm text-gray-600">vercel.com → Connect GitHub → Auto deploy. Free SSL & domain.</p>
           </div>
           <div className="border rounded-lg p-4">
             <h3 className="font-bold text-blue-700 mb-2">Netlify</h3>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>✅ netlify.com pe jaayein</li>
-              <li>✅ Drag & drop deploy</li>
-              <li>✅ Free SSL</li>
-              <li>✅ 100GB bandwidth free</li>
-              <li>✅ Custom domain support</li>
-            </ul>
+            <p className="text-sm text-gray-600">netlify.com → Drag & drop deploy. 100GB free bandwidth.</p>
           </div>
           <div className="border rounded-lg p-4">
             <h3 className="font-bold text-purple-700 mb-2">GitHub Pages</h3>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>✅ GitHub repo banayein</li>
-              <li>✅ Settings → Pages enable</li>
-              <li>✅ Free hosting</li>
-              <li>✅ github.io domain</li>
-              <li>✅ Unlimited usage</li>
-            </ul>
+            <p className="text-sm text-gray-600">Free hosting on github.io. Unlimited usage.</p>
           </div>
         </div>
       </div>
 
-      {/* Business Process */}
+      {/* Google Sheets Backend */}
       <div className="bg-white rounded-xl p-6 shadow-sm border mb-6">
-        <h2 className="text-lg font-bold text-gray-700 mb-4">📋 RA International - Business Process</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-emerald-50 rounded-lg p-4">
-            <h3 className="font-bold text-emerald-800 mb-2">Workflow</h3>
-            <ol className="list-decimal pl-5 text-sm text-gray-700 space-y-2">
-              <li>Customer se Order aata hai → <strong>Orders</strong> mein add karein</li>
-              <li>Vendor se maal mangwayein → <strong>Purchases</strong> mein add karein</li>
-              <li>Maal aa gaya → <strong>Delivery Note</strong> banayein</li>
-              <li>TCS/Daewoo receipt → <strong>Transport Receipts</strong> mein add karein</li>
-              <li>Customer ko supply → Invoice banayein (full/partial)</li>
-              <li>Customer payment → <strong>Payments Received</strong> record karein</li>
-              <li>Vendor ko payment → <strong>Payments Made</strong> record karein</li>
-              <li>Expenses → <strong>Expenses</strong> mein add karein</li>
-              <li>Reports → P&L, Balance Sheet auto generate</li>
-            </ol>
-          </div>
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h3 className="font-bold text-blue-800 mb-2">Key Features</h3>
-            <ul className="text-sm text-gray-700 space-y-2">
-              <li>📊 Real-time Dashboard</li>
-              <li>💰 Customer Receivables tracking</li>
-              <li>🏭 Vendor Payables tracking</li>
-              <li>🧾 Full/Partial Invoicing</li>
-              <li>💵 Cash/Cheque/Bank payments</li>
-              <li>🚚 Transport cost tracking</li>
-              <li>💸 Expense management</li>
-              <li>📈 Auto P&L & Balance Sheet</li>
-              <li>💾 Data Export/Import backup</li>
-            </ul>
+        <h2 className="text-lg font-bold text-gray-700 mb-4">📊 Google Sheets as Backend (FREE)</h2>
+        <div className="text-sm text-gray-600 space-y-3">
+          <p>Google Sheets ko free backend ki tarah use karein:</p>
+          <ol className="list-decimal pl-5 space-y-2">
+            <li>Google Sheet banayein with tabs for each data type</li>
+            <li>Tools → Script Editor mein Apps Script code paste karein</li>
+            <li>Deploy as Web App → URL milega</li>
+            <li>Frontend mein fetch() se data read/write karein</li>
+          </ol>
+          <div className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-xs">
+            <pre>{`function doGet(e) {
+  var sheet = SpreadsheetApp.getActive()
+    .getSheetByName(e.parameter.sheet);
+  return ContentService
+    .createTextOutput(JSON.stringify(
+      sheet.getDataRange().getValues()
+    )).setMimeType(ContentService.MimeType.JSON);
+}`}</pre>
           </div>
         </div>
       </div>
 
-      {/* Current Data Stats */}
+      {/* Current Stats */}
       <div className="bg-white rounded-xl p-6 shadow-sm border">
         <h2 className="text-lg font-bold text-gray-700 mb-4">📊 Current Data</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-emerald-600">{state.customers.length}</p>
-            <p className="text-xs text-gray-500">Customers</p>
-          </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">{state.vendors.length}</p>
-            <p className="text-xs text-gray-500">Vendors</p>
-          </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-purple-600">{state.orders.length}</p>
-            <p className="text-xs text-gray-500">Orders</p>
-          </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-orange-600">{state.invoices.length}</p>
-            <p className="text-xs text-gray-500">Invoices</p>
-          </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-red-600">{state.expenses.length}</p>
-            <p className="text-xs text-gray-500">Expenses</p>
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+          {[
+            { label: 'Items', count: state.masterItems.length, color: 'text-purple-600' },
+            { label: 'Customers', count: state.customers.length, color: 'text-emerald-600' },
+            { label: 'Vendors', count: state.vendors.length, color: 'text-blue-600' },
+            { label: 'Orders', count: state.orders.length, color: 'text-orange-600' },
+            { label: 'Invoices', count: state.invoices.length, color: 'text-pink-600' },
+            { label: 'Deliveries', count: state.deliveries.length, color: 'text-indigo-600' },
+          ].map(item => (
+            <div key={item.label} className="text-center p-3 bg-gray-50 rounded-lg">
+              <p className={`text-2xl font-bold ${item.color}`}>{item.count}</p>
+              <p className="text-xs text-gray-500">{item.label}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

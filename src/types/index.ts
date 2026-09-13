@@ -1,9 +1,21 @@
+export interface MasterItem {
+  id: string;
+  name: string;
+  description: string;
+  unit: string; // pcs, kg, box, etc
+  defaultRate: number;
+  category: string;
+  createdAt: string;
+}
+
 export interface Customer {
   id: string;
   name: string;
   contact: string;
   address: string;
   city: string;
+  ntncn: string;
+  creditLimit: number;
   createdAt: string;
 }
 
@@ -13,17 +25,20 @@ export interface Vendor {
   contact: string;
   address: string;
   city: string;
+  ntncn: string;
   createdAt: string;
 }
 
 export interface OrderItem {
   id: string;
+  itemId?: string;
   description: string;
   quantity: number;
   unitPrice: number;
   amount: number;
   delivered: number;
   pending: number;
+  unit: string;
 }
 
 export interface CustomerOrder {
@@ -50,16 +65,30 @@ export interface PurchaseOrder {
   notes: string;
 }
 
+export interface DeliveryItem {
+  id: string;
+  itemId?: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  unit: string;
+  orderId?: string;
+  orderItemId?: string;
+}
+
 export interface DeliveryNote {
   id: string;
   deliveryNumber: string;
   orderId: string;
+  customerId: string;
   customerName: string;
   date: string;
-  items: { description: string; quantity: number }[];
+  items: DeliveryItem[];
   transportMode: string;
   trackingNumber: string;
   status: 'dispatched' | 'delivered';
+  invoiced: boolean;
+  invoiceId?: string;
 }
 
 export interface TransportReceipt {
@@ -75,10 +104,13 @@ export interface TransportReceipt {
 
 export interface InvoiceItem {
   id: string;
+  itemId?: string;
   description: string;
   quantity: number;
   unitPrice: number;
   amount: number;
+  unit: string;
+  deliveryNoteId?: string;
 }
 
 export interface Invoice {
@@ -93,11 +125,15 @@ export interface Invoice {
   paidAmount: number;
   status: 'unpaid' | 'partial' | 'paid';
   notes: string;
+  deliveryNoteIds: string[];
+  orderId?: string;
 }
 
 export interface Payment {
   id: string;
   invoiceId: string;
+  invoiceNumber: string;
+  customerId: string;
   customerName: string;
   date: string;
   amount: number;
@@ -109,6 +145,8 @@ export interface Payment {
 export interface VendorPayment {
   id: string;
   poId: string;
+  poNumber: string;
+  vendorId: string;
   vendorName: string;
   date: string;
   amount: number;
@@ -126,7 +164,20 @@ export interface Expense {
   paymentMethod: string;
 }
 
+export interface CreditNote {
+  id: string;
+  cnNumber: string;
+  customerId: string;
+  customerName: string;
+  invoiceId: string;
+  date: string;
+  amount: number;
+  reason: string;
+  items: { description: string; quantity: number; rate: number; amount: number }[];
+}
+
 export interface AppState {
+  masterItems: MasterItem[];
   customers: Customer[];
   vendors: Vendor[];
   orders: CustomerOrder[];
@@ -137,4 +188,5 @@ export interface AppState {
   payments: Payment[];
   vendorPayments: VendorPayment[];
   expenses: Expense[];
+  creditNotes: CreditNote[];
 }

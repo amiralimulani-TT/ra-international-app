@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import Vendors from './pages/Vendors';
+import Items from './pages/Items';
 import Orders from './pages/Orders';
 import Purchases from './pages/Purchases';
 import Deliveries from './pages/Deliveries';
@@ -14,7 +15,7 @@ import Expenses from './pages/Expenses';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 
-export type Page = 'dashboard' | 'customers' | 'vendors' | 'orders' | 'purchases' | 'deliveries' | 'invoices' | 'payments' | 'expenses' | 'reports' | 'settings';
+export type Page = 'dashboard' | 'customers' | 'vendors' | 'items' | 'orders' | 'purchases' | 'deliveries' | 'invoices' | 'payments' | 'expenses' | 'reports' | 'settings';
 
 function App() {
   const [state, setState] = useState<AppState>(loadState());
@@ -34,6 +35,7 @@ function App() {
       case 'dashboard': return <Dashboard state={state} />;
       case 'customers': return <Customers state={state} updateState={updateState} />;
       case 'vendors': return <Vendors state={state} updateState={updateState} />;
+      case 'items': return <Items state={state} updateState={updateState} />;
       case 'orders': return <Orders state={state} updateState={updateState} />;
       case 'purchases': return <Purchases state={state} updateState={updateState} />;
       case 'deliveries': return <Deliveries state={state} updateState={updateState} />;
@@ -55,7 +57,6 @@ function App() {
         setIsOpen={setSidebarOpen}
       />
       <div className="flex-1 lg:ml-64">
-        {/* Mobile header */}
         <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between sticky top-0 z-30">
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg hover:bg-gray-100">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
