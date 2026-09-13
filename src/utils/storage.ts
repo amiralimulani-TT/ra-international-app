@@ -22,7 +22,16 @@ export function loadState(): AppState {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
       const parsed = JSON.parse(data);
-      return { ...defaultState, ...parsed };
+      const state = { ...defaultState, ...parsed };
+      // Migrate old invoices without GST fields
+      state.invoices = state.invoices.map((inv: any) => ({
+        ...inv,
+        subtotal: inv.subtotal ?? inv.totalAmount,
+        gstApplicable: inv.gstApplicable ?? false,
+        gstRate: inv.gstRate ?? 18,
+        gstAmount: inv.gstAmount ?? 0,
+      }));
+      return state;
     }
   } catch (e) {
     console.error('Error loading state:', e);

@@ -10,6 +10,10 @@ interface PrintData {
   partyCity?: string;
   orderRef?: string;
   items: { description: string; quantity: number; unit: string; rate: number; amount: number }[];
+  subtotal?: number;
+  gstApplicable?: boolean;
+  gstRate?: number;
+  gstAmount?: number;
   totalAmount: number;
   transportMode?: string;
   trackingNumber?: string;
@@ -31,7 +35,7 @@ export default function PrintModal({ data, onClose, companyName = 'RA Internatio
 
   const titles = {
     delivery: 'DELIVERY NOTE',
-    invoice: 'INVOICE',
+    invoice: 'TAX INVOICE',
     purchase: 'PURCHASE ORDER',
   };
 
@@ -41,10 +45,14 @@ export default function PrintModal({ data, onClose, companyName = 'RA Internatio
     purchase: 'from-purple-600 to-purple-800',
   };
 
+  const itemsTotal = data.items.reduce((s, i) => s + i.amount, 0);
+  const displaySubtotal = data.subtotal ?? itemsTotal;
+  const gstAmount = data.gstApplicable ? (data.gstAmount ?? displaySubtotal * ((data.gstRate || 18) / 100)) : 0;
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Controls - hidden on print */}
+        {/* Controls */}
         <div className="flex justify-between items-center p-4 border-b print:hidden">
           <h3 className="font-bold text-lg">Print Preview</h3>
           <div className="flex gap-2">
@@ -58,13 +66,14 @@ export default function PrintModal({ data, onClose, companyName = 'RA Internatio
         </div>
 
         {/* Print Content */}
-        <div className="p-8 print:p-0" id="print-content">
+        <div className="p-8 print:p-4" id="print-content">
           {/* Header */}
           <div className={`bg-gradient-to-r ${colors[data.type]} text-white p-6 rounded-t-lg print:rounded-none`}>
             <div className="flex justify-between items-start">
               <div>
                 <h1 className="text-2xl font-bold">{companyName}</h1>
                 <p className="text-sm opacity-90 mt-1">Supply & Trading</p>
+                <p className="text-xs opacity-75 mt-1">Lahore, Pakistan</p>
               </div>
               <div className="text-right">
                 <h2 className="text-xl font-bold">{titles[data.type]}</h2>
@@ -88,7 +97,7 @@ export default function PrintModal({ data, onClose, companyName = 'RA Internatio
               <div className="space-y-1">
                 <p className="text-sm"><span className="text-gray-500">Date:</span> <strong>{formatDate(data.date)}</strong></p>
                 {data.dueDate && <p className="text-sm"><span className="text-gray-500">Due Date:</span> <strong>{formatDate(data.dueDate)}</strong></p>}
-                {data.orderRef && <p className="text-sm"><span className="text-gray-500">Order Ref:</span> <strong>{data.orderRef}</strong></p>}
+                {data.orderRef && <p className="text-sm"><span className="text-gray-500">DN Ref:</span> <strong>{data.orderRef}</strong></p>}
                 {data.transportMode && <p className="text-sm"><span className="text-gray-500">Transport:</span> <strong>{data.transportMode}</strong></p>}
                 {data.trackingNumber && <p className="text-sm"><span className="text-gray-500">Tracking #:</span> <strong>{data.trackingNumber}</strong></p>}
               </div>
@@ -104,8 +113,8 @@ export default function PrintModal({ data, onClose, companyName = 'RA Internatio
                   <th className="text-left p-3 text-sm font-semibold">Description</th>
                   <th className="text-right p-3 text-sm font-semibold">Qty</th>
                   <th className="text-left p-3 text-sm font-semibold">Unit</th>
-                  <th className="text-right p-3 text-sm font-semibold">Rate</th>
-                  <th className="text-right p-3 text-sm font-semibold">Amount</th>
+                  <th className="text-right p-3 text-sm font-semibold">Rate (PKR)</th>
+                  <th className="text-right p-3 text-sm font-semibold">Amount (PKR)</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,11 +135,17 @@ export default function PrintModal({ data, onClose, companyName = 'RA Internatio
           {/* Totals */}
           <div className="px-6 pb-6">
             <div className="flex justify-end">
-              <div className="w-64">
+              <div className="w-72">
                 <div className="flex justify-between py-2 border-b">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">{formatCurrency(data.totalAmount)}</span>
+                  <span className="font-semibold">{formatCurrency(displaySubtotal)}</span>
                 </div>
+                {data.type === 'invoice' && data.gstApplicable && (
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-gray-600">GST ({data.gstRate || 18}%)</span>
+                    <span className="font-semibold text-orange-600">+ {formatCurrency(gstAmount)}</span>
+                  </div>
+                )}
                 {data.paidAmount !== undefined && data.paidAmount > 0 && (
                   <div className="flex justify-between py-2 border-b">
                     <span className="text-gray-600">Paid</span>
@@ -139,10 +154,14 @@ export default function PrintModal({ data, onClose, companyName = 'RA Internatio
                 )}
                 <div className="flex justify-between py-3 bg-gray-100 px-3 rounded mt-2">
                   <span className="font-bold text-lg">
-                    {data.paidAmount !== undefined ? 'Balance Due' : 'Total'}
+                    {data.paidAmount !== undefined && data.paidAmount > 0 ? 'Balance Due' : 'Grand Total'}
                   </span>
                   <span className="font-bold text-lg">
-                    {formatCurrency(data.paidAmount !== undefined ? data.totalAmount - data.paidAmount : data.totalAmount)}
+                    PKR {formatCurrency(
+                      data.paidAmount !== undefined && data.paidAmount > 0
+                        ? data.totalAmount - data.paidAmount
+                        : data.totalAmount
+                    ).replace('Rs. ', '')}
                   </span>
                 </div>
               </div>
@@ -162,6 +181,7 @@ export default function PrintModal({ data, onClose, companyName = 'RA Internatio
             <div className="text-xs text-gray-400">
               <p>Generated by RA International Business Accounts</p>
               <p>Printed on: {new Date().toLocaleDateString()}</p>
+              <p className="mt-1">Currency: PKR (Pakistani Rupee)</p>
             </div>
             <div className="text-center">
               <div className="border-t border-gray-400 w-48 pt-2">

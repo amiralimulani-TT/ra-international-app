@@ -121,6 +121,10 @@ export interface Invoice {
   date: string;
   dueDate: string;
   items: InvoiceItem[];
+  subtotal: number;
+  gstApplicable: boolean;
+  gstRate: number;
+  gstAmount: number;
   totalAmount: number;
   paidAmount: number;
   status: 'unpaid' | 'partial' | 'paid';
