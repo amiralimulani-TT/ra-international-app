@@ -6,7 +6,7 @@ interface Props { state: AppState; updateState: (u: Partial<AppState>) => void; 
 
 export default function Customers({ state, updateState }: Props) {
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', contact: '', address: '', city: '', ntncn: '', creditLimit: 0 });
+  const [form, setForm] = useState({ name: '', contact: '', address: '', city: '', ntnNumber: '', gstNumber: '', creditLimit: 0 });
   const [search, setSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
@@ -50,7 +50,8 @@ export default function Customers({ state, updateState }: Props) {
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <input required placeholder="Customer Name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none" />
             <input placeholder="Contact / Phone" value={form.contact} onChange={e => setForm({...form, contact: e.target.value})} className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none" />
-            <input placeholder="NTN / CNIC" value={form.ntncn} onChange={e => setForm({...form, ntncn: e.target.value})} className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input placeholder="NTN Number" value={form.ntnNumber} onChange={e => setForm({...form, ntnNumber: e.target.value})} className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input placeholder="GST Number" value={form.gstNumber} onChange={e => setForm({...form, gstNumber: e.target.value})} className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none" />
             <input placeholder="Address" value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none" />
             <input placeholder="City" value={form.city} onChange={e => setForm({...form, city: e.target.value})} className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none" />
             <input type="number" placeholder="Credit Limit" value={form.creditLimit || ''} onChange={e => setForm({...form, creditLimit: parseFloat(e.target.value) || 0})} className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none" />

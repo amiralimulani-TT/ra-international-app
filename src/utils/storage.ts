@@ -1,8 +1,18 @@
 import { AppState } from '../types';
 
-const STORAGE_KEY = 'ra_international_accounts_v2';
+const STORAGE_KEY = 'ra_international_accounts_v3';
 
 const defaultState: AppState = {
+  companyProfile: {
+    name: 'RA International',
+    address: '',
+    city: '',
+    phone: '',
+    email: '',
+    ntnNumber: '',
+    gstNumber: '',
+    bankAccounts: [],
+  },
   masterItems: [],
   customers: [],
   vendors: [],
@@ -15,6 +25,9 @@ const defaultState: AppState = {
   vendorPayments: [],
   expenses: [],
   creditNotes: [],
+  ledgerEntries: [],
+  borrowings: [],
+  inventoryAdjustments: [],
 };
 
 export function loadState(): AppState {
@@ -30,6 +43,7 @@ export function loadState(): AppState {
         gstApplicable: inv.gstApplicable ?? false,
         gstRate: inv.gstRate ?? 18,
         gstAmount: inv.gstAmount ?? 0,
+        paymentTerms: inv.paymentTerms ?? '',
       }));
       return state;
     }
@@ -56,7 +70,7 @@ export function generateNumber(prefix: string, count: number): string {
 }
 
 export function formatCurrency(amount: number): string {
-  return `Rs. ${amount.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  return `PKR ${amount.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
 export function formatDate(dateStr: string): string {
