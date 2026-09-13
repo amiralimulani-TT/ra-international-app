@@ -18,6 +18,7 @@ const menuItems: { page: Page; label: string; icon: string }[] = [
   { page: 'invoices', label: 'Invoices', icon: '🧾' },
   { page: 'payments', label: 'Payments', icon: '💰' },
   { page: 'expenses', label: 'Expenses', icon: '💸' },
+  { page: 'inventory', label: 'Inventory', icon: '📊' },
   { page: 'reports', label: 'Reports', icon: '📈' },
   { page: 'settings', label: 'Settings', icon: '⚙️' },
 ];

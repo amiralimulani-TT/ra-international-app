@@ -73,6 +73,19 @@ export default function Orders({ state, updateState }: Props) {
 
   return (
     <div>
+      {/* Explanation Banner */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+        <h3 className="font-bold text-blue-800 mb-1">📋 Yeh Orders Tab Kya Hai?</h3>
+        <p className="text-sm text-gray-700">
+          <strong>Customer Order = Customer ki demand/booking.</strong> Jab customer aapko batata hai ke usse kya chahiye, 
+          yeh woh record hai. Iske baad aap vendor se maal mangwate hain (Purchases), phir deliver karte hain (Delivery Notes), 
+          aur phir invoice karte hain. Order se delivery items auto-fill hote hain!
+        </p>
+        <p className="text-xs text-gray-500 mt-2">
+          Flow: <strong>Customer Order</strong> → Purchase from Vendor → Delivery Note → Invoice → Payment
+        </p>
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-800">📋 Customer Orders</h1>
         <button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700">
