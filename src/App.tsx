@@ -13,10 +13,11 @@ import Deliveries from './pages/Deliveries';
 import Invoices from './pages/Invoices';
 import Payments from './pages/Payments';
 import Expenses from './pages/Expenses';
+import CompanyProfile from './pages/CompanyProfile';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 
-export type Page = 'dashboard' | 'customers' | 'vendors' | 'items' | 'orders' | 'purchases' | 'deliveries' | 'invoices' | 'payments' | 'expenses' | 'inventory' | 'reports' | 'settings';
+export type Page = 'dashboard' | 'customers' | 'vendors' | 'items' | 'orders' | 'purchases' | 'deliveries' | 'invoices' | 'payments' | 'expenses' | 'inventory' | 'company' | 'reports' | 'settings';
 
 function App() {
   const [state, setState] = useState<AppState>(loadState());
@@ -44,6 +45,7 @@ function App() {
       case 'payments': return <Payments state={state} updateState={updateState} />;
       case 'expenses': return <Expenses state={state} updateState={updateState} />;
       case 'inventory': return <Inventory state={state} />;
+      case 'company': return <CompanyProfile state={state} updateState={updateState} />;
       case 'reports': return <Reports state={state} />;
       case 'settings': return <Settings state={state} updateState={updateState} />;
       default: return <Dashboard state={state} />;

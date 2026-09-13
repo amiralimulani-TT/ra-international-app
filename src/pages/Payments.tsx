@@ -5,13 +5,15 @@ import { generateId, getToday, formatCurrency, formatDate, daysBetween } from '.
 interface Props { state: AppState; updateState: (u: Partial<AppState>) => void; }
 
 export default function Payments({ state, updateState }: Props) {
-  const [activeTab, setActiveTab] = useState<'outstanding' | 'received' | 'paid'>('outstanding');
+  const [activeTab, setActiveTab] = useState<'outstanding' | 'received' | 'paid' | 'adjustments'>('outstanding');
   const [showReceiveForm, setShowReceiveForm] = useState(false);
   const [showPayForm, setShowPayForm] = useState(false);
+  const [showAdjustForm, setShowAdjustForm] = useState(false);
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
   const [bulkAmount, setBulkAmount] = useState(0);
-  const [receiveForm, setReceiveForm] = useState({ invoiceId: '', date: getToday(), amount: 0, method: 'cash' as const, reference: '', notes: '' });
-  const [payForm, setPayForm] = useState({ poId: '', date: getToday(), amount: 0, method: 'cash' as const, reference: '', notes: '' });
+  const [receiveForm, setReceiveForm] = useState({ invoiceId: '', date: getToday(), amount: 0, method: 'cash' as const, accountId: '', reference: '', notes: '' });
+  const [payForm, setPayForm] = useState({ poId: '', date: getToday(), amount: 0, method: 'cash' as const, accountId: '', reference: '', notes: '' });
+  const [adjustForm, setAdjustForm] = useState({ invoiceId: '', type: 'wht' as 'wht' | 'discount' | 'writeoff', amount: 0, date: getToday(), notes: '' });
 
   // Outstanding invoices
   const outstandingInvoices = state.invoices
@@ -58,7 +60,7 @@ export default function Payments({ state, updateState }: Props) {
       invoices: state.invoices.map(inv => inv.id === receiveForm.invoiceId ? { ...inv, paidAmount: newPaidAmount, status } : inv),
     });
 
-    setReceiveForm({ invoiceId: '', date: getToday(), amount: 0, method: 'cash', reference: '', notes: '' });
+    setReceiveForm({ invoiceId: '', date: getToday(), amount: 0, method: 'cash', accountId: '', reference: '', notes: '' });
     setShowReceiveForm(false);
   };
 
@@ -125,7 +127,7 @@ export default function Payments({ state, updateState }: Props) {
     };
 
     updateState({ vendorPayments: [...state.vendorPayments, newPayment] });
-    setPayForm({ poId: '', date: getToday(), amount: 0, method: 'cash', reference: '', notes: '' });
+    setPayForm({ poId: '', date: getToday(), amount: 0, method: 'cash', accountId: '', reference: '', notes: '' });
     setShowPayForm(false);
   };
 
@@ -170,6 +172,9 @@ export default function Payments({ state, updateState }: Props) {
         </button>
         <button onClick={() => setActiveTab('paid')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'paid' ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
           💸 Paid to Vendors
+        </button>
+        <button onClick={() => setActiveTab('adjustments')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'adjustments' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
+          ⚖️ Adjustments
         </button>
       </div>
 
@@ -237,7 +242,7 @@ export default function Payments({ state, updateState }: Props) {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <button onClick={() => { setReceiveForm({ invoiceId: inv.id, date: getToday(), amount: inv.balance, method: 'cash', reference: '', notes: '' }); setShowReceiveForm(true); setActiveTab('received'); }} className="text-emerald-600 text-sm font-medium hover:text-emerald-800">
+                        <button onClick={() => { setReceiveForm({ invoiceId: inv.id, date: getToday(), amount: inv.balance, method: 'cash', accountId: '', reference: '', notes: '' }); setShowReceiveForm(true); setActiveTab('received'); }} className="text-emerald-600 text-sm font-medium hover:text-emerald-800">
                           💵 Receive
                         </button>
                       </td>
@@ -388,6 +393,119 @@ export default function Payments({ state, updateState }: Props) {
                       <td className="px-4 py-3 text-right font-semibold text-orange-600">{formatCurrency(p.amount)}</td>
                       <td className="px-4 py-3 text-sm capitalize">{p.method.replace('_', ' ')}</td>
                       <td className="px-4 py-3 text-sm">{p.reference || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Adjustments Tab */}
+      {activeTab === 'adjustments' && (
+        <>
+          <div className="bg-purple-50 rounded-xl p-4 border border-purple-200 mb-4">
+            <h3 className="font-semibold text-purple-800 mb-2">⚖️ Payment Adjustments</h3>
+            <p className="text-sm text-gray-700">
+              Jab customer short payment kare ya deduction ho (WHT, discount, write-off), yahan adjust karein. 
+              Ye amount invoice se deduct hoga aur balance zero ho jayega.
+            </p>
+          </div>
+
+          <button onClick={() => setShowAdjustForm(!showAdjustForm)} className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 mb-4">
+            + Record Adjustment
+          </button>
+
+          {showAdjustForm && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border mb-6">
+              <h3 className="font-semibold mb-4">Adjust Invoice Balance</h3>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const invoice = state.invoices.find(inv => inv.id === adjustForm.invoiceId);
+                if (!invoice) return;
+
+                // Update invoice paid amount to include adjustment
+                const newPaidAmount = invoice.paidAmount + adjustForm.amount;
+                const status = newPaidAmount >= invoice.totalAmount ? 'paid' : 'partial';
+
+                // Add to expenses if it's a writeoff or discount
+                if (adjustForm.type === 'writeoff' || adjustForm.type === 'discount' || adjustForm.type === 'wht') {
+                  const categoryMap = { wht: 'Tax - WHT', discount: 'Discount Given', writeoff: 'Write-off' };
+                  const expense = {
+                    id: generateId(),
+                    date: adjustForm.date,
+                    category: categoryMap[adjustForm.type],
+                    description: `${adjustForm.type.toUpperCase()} - ${invoice.customerName} - ${invoice.invoiceNumber}`,
+                    amount: adjustForm.amount,
+                    paymentMethod: 'adjustment',
+                    accountId: '',
+                  };
+                  updateState({
+                    invoices: state.invoices.map(inv => inv.id === invoice.id ? { ...inv, paidAmount: newPaidAmount, status: status as any } : inv),
+                    expenses: [...state.expenses, expense],
+                  });
+                } else {
+                  updateState({
+                    invoices: state.invoices.map(inv => inv.id === invoice.id ? { ...inv, paidAmount: newPaidAmount, status: status as any } : inv),
+                  });
+                }
+
+                setAdjustForm({ invoiceId: '', type: 'wht', amount: 0, date: getToday(), notes: '' });
+                setShowAdjustForm(false);
+              }} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <select required value={adjustForm.invoiceId} onChange={e => setAdjustForm({...adjustForm, invoiceId: e.target.value})} className="border rounded-lg px-4 py-2 outline-none">
+                  <option value="">Select Invoice *</option>
+                  {state.invoices.filter(i => i.status !== 'paid').map(inv => (
+                    <option key={inv.id} value={inv.id}>{inv.invoiceNumber} - {inv.customerName} (Bal: {formatCurrency(inv.totalAmount - inv.paidAmount)})</option>
+                  ))}
+                </select>
+                <select value={adjustForm.type} onChange={e => setAdjustForm({...adjustForm, type: e.target.value as any})} className="border rounded-lg px-4 py-2 outline-none">
+                  <option value="wht">WHT (Withholding Tax)</option>
+                  <option value="discount">Discount</option>
+                  <option value="writeoff">Write-off</option>
+                </select>
+                <input type="number" min="1" required placeholder="Amount *" value={adjustForm.amount || ''} onChange={e => setAdjustForm({...adjustForm, amount: parseFloat(e.target.value) || 0})} className="border rounded-lg px-4 py-2 outline-none" />
+                <input type="date" value={adjustForm.date} onChange={e => setAdjustForm({...adjustForm, date: e.target.value})} className="border rounded-lg px-4 py-2 outline-none" />
+                <input placeholder="Notes/Reason" value={adjustForm.notes} onChange={e => setAdjustForm({...adjustForm, notes: e.target.value})} className="border rounded-lg px-4 py-2 outline-none sm:col-span-2" />
+                <div className="flex gap-3 sm:col-span-2">
+                  <button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">Record Adjustment</button>
+                  <button type="button" onClick={() => setShowAdjustForm(false)} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Show recent adjustments from expenses */}
+          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div className="p-4 bg-gray-50 border-b">
+              <h3 className="font-semibold text-gray-700">Recent Adjustments</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Date</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Type</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Description</th>
+                    <th className="text-right px-4 py-3 text-sm font-semibold text-gray-600">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {state.expenses.filter(e => e.category === 'Tax - WHT' || e.category === 'Discount Given' || e.category === 'Write-off').length === 0 ? (
+                    <tr><td colSpan={4} className="text-center py-8 text-gray-400">No adjustments recorded yet</td></tr>
+                  ) : [...state.expenses].filter(e => e.category === 'Tax - WHT' || e.category === 'Discount Given' || e.category === 'Write-off').reverse().map(exp => (
+                    <tr key={exp.id} className="border-t hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm">{formatDate(exp.date)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          exp.category === 'Tax - WHT' ? 'bg-blue-100 text-blue-700' :
+                          exp.category === 'Discount Given' ? 'bg-green-100 text-green-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>{exp.category}</span>
+                      </td>
+                      <td className="px-4 py-3 text-sm">{exp.description}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-purple-600">{formatCurrency(exp.amount)}</td>
                     </tr>
                   ))}
                 </tbody>
